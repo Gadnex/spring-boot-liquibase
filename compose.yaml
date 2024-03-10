@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_DB=greeting'
+      - 'POSTGRES_USER=greeting-api'
+      - 'POSTGRES_PASSWORD=secret'
+    ports:
+      - '5432:5432'

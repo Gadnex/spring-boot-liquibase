@@ -1,0 +1,110 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.2.3'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id 'org.hibernate.orm' version '6.4.4.Final'
+	id 'org.liquibase.gradle' version '2.2.1'
+	id 'org.graalvm.buildtools.native' version '0.9.28'
+}
+
+group = 'net.binarypaper'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '21'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+springBoot {
+	buildInfo {
+		properties {
+			additional = [
+				"description": "A sample Spring Boot application to experiment with Liquibase",
+				"developer.name": "William Gadney",
+				"developer.email": "gadnex@gmail.com",
+				"license.name": "APACHE LICENSE, VERSION 2.0",
+				"license.url" : "https://www.apache.org/licenses/LICENSE-2.0"
+			]
+		}
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+	implementation 'org.liquibase:liquibase-core'
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+	runtimeOnly 'org.postgresql:postgresql'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.testcontainers:postgresql'
+	liquibaseRuntime 'org.liquibase:liquibase-core'
+	liquibaseRuntime 'org.liquibase.ext:liquibase-hibernate6:4.24.0'
+	liquibaseRuntime 'info.picocli:picocli:4.7.5'
+	liquibaseRuntime 'org.springframework.boot:spring-boot-starter-data-jpa'
+	liquibaseRuntime 'org.springframework.boot:spring-boot-starter-validation'
+	liquibaseRuntime 'org.postgresql:postgresql'
+	liquibaseRuntime sourceSets.main.output
+}
+
+tasks.named('processResources') {
+	filesMatching('**/application.yml') {
+    	expand(project.properties)
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+tasks.register('bootRunDev') {
+    group = 'application'
+    description = 'Runs the Spring Boot application with the dev profile'
+    doFirst {
+        tasks.bootRun.configure {
+            systemProperty('spring.profiles.active', 'dev')
+        }
+    }
+    finalizedBy("bootRun")
+}
+
+hibernate {
+	enhancement {
+		enableAssociationManagement = true
+	}
+}
+
+liquibase {
+	jvmArgs "-Duser.dir=$project.projectDir"
+    activities {
+        main {
+			String targetFile = 'src/main/resources/db/changelog/db.changelog.0000-change.yml'
+			changelogFile targetFile
+            url 'jdbc:postgresql://localhost:5432/greeting'
+            username 'greeting-api'
+            password 'secret'
+            referenceUrl 'hibernate:spring:net.binarypaper' +
+				'?dialect=org.hibernate.dialect.PostgreSQLDialect' +
+				'&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy' +
+				'&hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy'
+			referenceDriver 'liquibase.ext.hibernate.database.connection.HibernateDriver'
+            snapshotFormat 'yaml'
+        }
+    }
+}

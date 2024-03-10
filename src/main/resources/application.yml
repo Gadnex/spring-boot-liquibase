@@ -1,0 +1,36 @@
+spring:
+    application:
+        name: ${rootProject.name}
+    jackson:
+        # Global setting to not return null objects in JSON responses
+        default-property-inclusion: NON_NULL
+
+server:
+    port: 8080
+
+management:
+    server:
+        port: 9080
+    endpoints:
+        web:
+            exposure:
+                include: "*"
+    endpoint:
+        health:
+            show-details: always
+            probes:
+                enabled: true
+    info:
+        java.enabled: true
+        env.enabled: true
+
+springdoc:
+    use-management-port: true
+
+application:
+    cors:
+        origins: http://localhost:\${management.server.port}
+
+logging:
+    level:
+        '[org.springframework]': ERROR

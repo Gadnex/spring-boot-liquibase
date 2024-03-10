@@ -1,0 +1,12 @@
+spring:
+  jpa:
+    # Required for src/main/resources/data-postgres.sql to run after Hibernate schema creation
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: create-drop
+  sql:
+    init:
+      mode: always
+      platform: postgres
+  liquibase:
+    enabled: false
